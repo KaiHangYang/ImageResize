@@ -1,0 +1,7 @@
+.DS_Store
+*.so
+*.dylib
+*.o
+*.jpg
+*.png
+*.jpeg
