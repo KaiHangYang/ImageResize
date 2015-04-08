@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 .DS_Store
 *.so
 *.dylib
@@ -5,3 +6,9 @@
 *.jpg
 *.png
 *.jpeg
+=======
+*.jpg
+*.png
+*.jpeg
+*.o
+>>>>>>> a96a65e39fc5b08e4d717ddc0611bec3f0df13bc

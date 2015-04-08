@@ -89,7 +89,7 @@ if __name__ == '__main__':
     t1 = time.time()
 
     img = cv.LoadImage('haha.jpg', 1)
-    img = resize_linear(img, 2, 2)
+    img = resize_cubic(img, 2, 2)
     print time.time() - t1
     cv.ShowImage('Test', img)
     cv.WaitKey(0)
