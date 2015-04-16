@@ -4,6 +4,7 @@
 # ---------Edit By KaiHangYang----------
 # -------------2015,04,12---------------
 import os
+import sys
 import time
 from Tkinter import *
 from PIL import (
@@ -14,6 +15,10 @@ import tkFileDialog
 import tkMessageBox
 # 下来是我自己的辅助库
 import fileCheck
+
+# 解决Unicode Error
+reload(sys)
+sys.setdefaultencoding("utf8")
 '''
     库引用说明：
         Tkinter 提供了GUI界面支持
@@ -27,8 +32,9 @@ class Application():
     def __init__(self):
         self.root = Tk()
         self.root.title("图片放大缩小的差值实现")
-        # self.root.geometry("400x300")
         self.root.resizable(width=True, height=True)
+        self.root.maxsize(700, 600)
+        self.root.minsize(670, 590)
 
         self._inited = False
         # 声明上层部件框
@@ -36,12 +42,14 @@ class Application():
         self.viewpanel = Frame(self.root)
         self.managepanel = Frame(self.root)
         # 视窗部件的初始化
+        self.filename = ''
         self.__menu()
         self.__scrollbar()
         self.__view()
         self.__manage()
         self.bind_all()
 
+        self.consoleNor("程序加载完毕！")
         self._inited = True
 
     def __menu(self):
@@ -82,7 +90,7 @@ class Application():
         self.canvas = Canvas(self.viewpanel)
         self.canvas.pack(expand=True, fill=BOTH)
 
-        self.canvas.config(width=600, height=400)
+        self.canvas.config(width=600, height=400, scrollregion=(0, 0, 600, 400))
 
     def __manage(self):
         if self._inited:
@@ -101,6 +109,7 @@ class Application():
         self.controlpanel.columnconfigure(1, minsize=70)
         self.controlpanel.columnconfigure(2, minsize=70)
         self.controlpanel.columnconfigure(3, minsize=70)
+
         # 首先是console
         self.console = Text(self.consolepanel, width=45, height=8, bd=1,
                             highlightbackground="grey", highlightthickness=1,
@@ -119,7 +128,8 @@ class Application():
         self.fileName = StringVar()
         self.fileName.set("请选择图片文件")
 
-        fileLabel = Label(self.controlpanel, textvariable=self.fileName, pady=2)
+        fileLabel = Label(self.controlpanel, textvariable=self.fileName, pady=2,
+                          width=18)
 
         algLabel = Label(self.controlpanel, text="选择算法：")
         sizeLabel = Label(self.controlpanel, text="放大倍数:")
@@ -137,7 +147,10 @@ class Application():
 
         # 大小的有效性验证
         def sizeValidate(content):
-            return content.isdigit()
+            if content == "." or content.isdigit():
+                return True
+            else:
+                return False
 
         self.wVar = StringVar()
         self.hVar = StringVar()
@@ -169,34 +182,72 @@ class Application():
         self.preBtn.grid(row=5, column=0, columnspan=2)
         self.genBtn.grid(row=5, column=2, columnspan=2)
 
+
     def _getFileName(self):
         name = tkFileDialog.askopenfilename()
         if fileCheck.isImage(name)[0]:
-            self.fileName.set(name)
+            self.filename = name
+            self.fileName.set("已选择")
+            self.consoleNor("选择图片："+os.path.basename(name))
+            self._preview(True)
         else:
             tkMessageBox.showerror(title="Error",
                                    message="类型错误："
                                    "打开的不是图片呦，是不是打开的方式不对？")
+            self.consoleErr("类型错误："+name+
+                            "不是图片的类型，或者无法识别类型。")
 
-    def _preview(self):
+    def _preview(self, *arg):
         # 在显示图片的时候需要保存对于那个图片的引用，
         # 否则python会在这个函数结束的时候，image的所有引用都没了，
         # 图片就显示不出来了
+        if not(len(arg) == 0):
+            wScale = 1
+            hScale = 1
+        else:
+            wScale = self.wVar.get()
+            hScale = self.hVar.get()
 
-        name = self.fileName.get()
+            if wScale == "" or hScale == "":
+                self.consoleWar("倍数警告：倍数未填写默认为（1，1）。")
+                wScale = 1
+                hScale = 1
+            else:
+                try:
+                    wScale = float(wScale)
+                    hScale = float(hScale)
+                except:
+                    wScale = 1
+                    hScale = 1
+                    self.consoleErr("数值错误：放大倍数非数值类型！")
+                    return
+                else:
+                    self.consoleNor("缩放(%0.1f, %0.1f)倍。"%(wScale, hScale))
 
+        name = self.filename
         # 需要检测一下文件的类型
         if not fileCheck.isImage(name)[0]:
             tkMessageBox.showerror(title="Error",
                                    message="类型错误："
                                    "打开的不是图片呦，是不是打开的方式不对？")
+            self.consoleErr("类型错误："+name+
+                            "不是图片的类型，或者无法识别类型。")
+            return
 
         self.canvas.delete(ALL)
-        self.image = ImageTk.PhotoImage(Image.open(name))
-        width = self.image.width()
-        height = self.image.height()
+        self.image = Image.open(name)
+        width, height = self.image.size
 
-        self.canvas.create_image(width/2, height/2, image=self.image)
+        width *= wScale
+        height *= hScale
+        tmpIm = self.image.resize((int(width),int(height)))
+
+        self.tkImage = ImageTk.PhotoImage(tmpIm)
+
+        self.canvas.create_image(0, 0, image=self.tkImage, anchor="nw")
+        self.canvas.config(scrollregion=(0, 0, width, height))
+        self.consoleNor("预览图片："+os.path.basename(name))
+
     def consoleNor(self, message):
         existContent = self.console.get("0.0", END)
         if existContent.count("\n") >= 50:
@@ -226,6 +277,12 @@ class Application():
     def bind_all(self):
         self.fileBtn.config(command=self._getFileName)
         self.preBtn.config(command=self._preview)
+        # canvas的移动
+        self.hbar.config(command=self.canvas.xview)
+        self.vbar.config(command=self.canvas.yview)
+        self.canvas.config(xscrollcommand=self.hbar.set,
+                           yscrollcommand=self.vbar.set)
+
 
 if __name__ == "__main__":
     app = Application()

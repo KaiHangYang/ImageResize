@@ -4,6 +4,7 @@
 # ---------Edit By KaiHangYang----------
 # -------------2015,04,16---------------
 import struct
+import os
 # 检测的方式是通过检测文件头来判断MEMI类型来进行的
 types = {
     u"FFD8FF": "jpg",
@@ -26,6 +27,8 @@ def _getHex(b_tuple):
     return string
 
 def isImage(path):
+    if not os.path.exists(path):
+        return (False, "undefined")
     with open(path, "rb") as f:
         for i in types.keys():
             head_size = len(i)/2
