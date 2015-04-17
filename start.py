@@ -4,6 +4,7 @@
 # ---------Edit By KaiHangYang----------
 # -------------2015,04,12---------------
 import os
+import cv
 import sys
 import time
 from Tkinter import *
@@ -15,6 +16,7 @@ import tkFileDialog
 import tkMessageBox
 # 下来是我自己的辅助库
 import fileCheck
+import tool_cv
 
 # 解决Unicode Error
 reload(sys)
@@ -26,6 +28,15 @@ sys.setdefaultencoding("utf8")
         tkMessageBox提供了对话框支持
         PIL中的组件是提供图片打开支持的，用于在canvas上显示图片预览
 '''
+
+IMAGE_TYPES = [
+    "jpg",
+    "jpeg",
+    "png",
+    "tif",
+    "bmp",
+    "gif",
+]
 
 class Application():
     # 初始化
@@ -47,7 +58,7 @@ class Application():
         self.__scrollbar()
         self.__view()
         self.__manage()
-        self.bind_all()
+        self.__bind_all()
 
         self.consoleNor("程序加载完毕！")
         self._inited = True
@@ -62,6 +73,8 @@ class Application():
         filemenu = Menu(self.menu, name="file")
         self.menu.add_cascade(label="文件", menu=filemenu)
         filemenu.add_command(label="打开", command=self._getFileName)
+        filemenu.add_command(label="保存", command=self._save)
+        filemenu.add_command(label="预览", command=self._preview)
 
         filemenu.add_separator()
         filemenu.add_command(label="退出", command=self.root.quit)
@@ -185,6 +198,7 @@ class Application():
 
     def _getFileName(self):
         name = tkFileDialog.askopenfilename()
+        if name == "": return
         if fileCheck.isImage(name)[0]:
             self.filename = name
             self.fileName.set("已选择")
@@ -202,27 +216,28 @@ class Application():
         # 否则python会在这个函数结束的时候，image的所有引用都没了，
         # 图片就显示不出来了
         if not(len(arg) == 0):
-            wScale = 1
-            hScale = 1
+            self.wScale = 1
+            self.hScale = 1
         else:
-            wScale = self.wVar.get()
-            hScale = self.hVar.get()
+            self.wScale = self.wVar.get()
+            self.hScale = self.hVar.get()
 
-            if wScale == "" or hScale == "":
+            if self.wScale == "" or self.hScale == "":
                 self.consoleWar("倍数警告：倍数未填写默认为（1，1）。")
-                wScale = 1
-                hScale = 1
+                self.wScale = 1
+                self.hScale = 1
             else:
                 try:
-                    wScale = float(wScale)
-                    hScale = float(hScale)
+                    self.wScale = float(self.wScale)
+                    self.hScale = float(self.hScale)
                 except:
-                    wScale = 1
-                    hScale = 1
+                    self.wScale = 1
+                    self.hScale = 1
                     self.consoleErr("数值错误：放大倍数非数值类型！")
                     return
                 else:
-                    self.consoleNor("缩放(%0.1f, %0.1f)倍。"%(wScale, hScale))
+                    self.consoleNor("缩放(%0.1f, %0.1f)倍。"%(self.wScale,
+                                                                  self.hScale))
 
         name = self.filename
         # 需要检测一下文件的类型
@@ -238,8 +253,8 @@ class Application():
         self.image = Image.open(name)
         width, height = self.image.size
 
-        width *= wScale
-        height *= hScale
+        width *= self.wScale
+        height *= self.hScale
         tmpIm = self.image.resize((int(width),int(height)))
 
         self.tkImage = ImageTk.PhotoImage(tmpIm)
@@ -274,15 +289,46 @@ class Application():
         print self.console.get(str(infoLen)+".0", END)
         self.console.tag_add("error", str(infoLen)+".0", str(infoLen+1)+".0")
 
-    def bind_all(self):
+    def __bind_all(self):
         self.fileBtn.config(command=self._getFileName)
         self.preBtn.config(command=self._preview)
+        self.genBtn.config(command=self._save)
         # canvas的移动
         self.hbar.config(command=self.canvas.xview)
         self.vbar.config(command=self.canvas.yview)
         self.canvas.config(xscrollcommand=self.hbar.set,
                            yscrollcommand=self.vbar.set)
 
+    def _save(self):
+        self._preview()
+        self.consoleNor("过程控制：图片正在处理中...")
+        filepath = tkFileDialog.asksaveasfilename()
+
+        filename = os.path.basename(filepath)
+        dotNum = filename.count(".")
+
+        if dotNum == 0:
+            if filename == "" : return
+            postfix = ".jpg"
+        elif dotNum >= 2 or not (filename.split(".")[1] in IMAGE_TYPES):
+            self.consoleErr("格式错误：文件名格式错误！")
+            return
+        else:
+            postfix = ""
+
+        if os.path.exists(self.filename) and fileCheck.isImage(self.filename):
+            try:
+                if self.algNum == 0:
+                    im = tool_cv.resize_linear(self.filename, self.wScale, self.hScale)
+                else:
+                    im = tool_cv.resize_cubic(self.filename, self.wScale, self.hScale)
+                self.consoleNor("过程控制：图片处理完毕，开始保存...")
+                cv.SaveImage(filepath+postfix, im)
+                self.consoleNor("过程控制：图片保存完毕...")
+            except:
+                self.consoleErr("过程控制：图片保存过程出现问题...")
+        else:
+            self.consoleErr("类型错误：打开的不是图片或者是文件不存在！")
 
 if __name__ == "__main__":
     app = Application()

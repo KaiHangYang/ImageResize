@@ -19,7 +19,8 @@ import time
 # 首先边界不会过于模糊而且噪点也不会太多
 
 
-def resize_linear(img, m, n):
+def resize_linear(path, m, n):
+    img = cv.LoadImage(path, 1)
     initH = img.height
     initW = img.width
 
@@ -51,7 +52,8 @@ def resize_linear(img, m, n):
     return Img
 
 
-def resize_cubic(img, w, h):
+def resize_cubic(path, w, h):
+    img = cv.LoadImage(path, 1)
     initW = img.width
     initH = img.height
 
@@ -87,9 +89,7 @@ def resize_cubic(img, w, h):
 
 if __name__ == '__main__':
     t1 = time.time()
-
-    img = cv.LoadImage('haha.jpg', 1)
-    img = resize_cubic(img, 2, 2)
+    img = resize_cubic("haha.jpg", 2, 0.3)
     print time.time() - t1
     cv.ShowImage('Test', img)
     cv.WaitKey(0)
