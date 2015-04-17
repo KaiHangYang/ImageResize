@@ -38,10 +38,8 @@ def resize_linear(path, m, n):
             y = 0 if y <= 0 else y
             p = (j+0.0)/m - x
             q = (i+0.0)/n - y
-
             # 这里是传递4个像素数据以及p q
             for k in range(3):
-
                 sum[k] = linear((int(img[x, y][k]),
                                  int(img[x+1, y][k]),
                                  int(img[x, y+1][k]),
@@ -61,17 +59,20 @@ def resize_cubic(path, w, h):
     sum = [0, 0, 0]
 
     Img = cv.CreateImage(size, img.depth, img.nChannels)
-    print Img.height, ':', H, Img.width, ':', W
+    print W, H
 
     for i in xrange(W):
         for j in xrange(H):
-            x = int(round((i+1.0)/w-1))
-            y = int(round((j+1.0)/h-1))
+            x = (i+0.0)/w
+            y = (j+0.0)/h
+
+            p = x - int(x)
+            q = y - int(y)
+
             x = 1 if x <= 0 else (initW-3 if (x+2) >= initW else x)
             y = 1 if y <= 0 else (initH-3 if (y+2) >= initH else y)
-
-            p = (i+0.0)/w - x
-            q = (j+0.0)/h - y
+            x = int(x)
+            y = int(y)
             # 由于三次卷积的计算方式 如果使p q 小于-1的话会使像素的值大多数是0
             # 因此这里得进行判断将 p q的值控制在一定范围内
             p = -1.0 if p < -1.0 else p
@@ -83,13 +84,20 @@ def resize_cubic(path, w, h):
                         (int(img[y-1, x+2][k]), int(img[y, x+2][k]), int(img[y+1, x+2][k]), int(img[y+2, x+2][k])),
                         )
                 sum[k] = cubic(vals, p, q)
+                # 这里和cv2不同，溢出的话会为255
+
+                if sum[k] >= 255: sum[k] = 255
+
             Img[j, i] = tuple(sum)
+            if i == 67 and j == 362:
+                print sum, p, q
 
     return Img
 
 if __name__ == '__main__':
     t1 = time.time()
-    img = resize_cubic("haha.jpg", 2, 0.3)
+    img = resize_cubic("haha.jpg", 1.5, 1.5)
     print time.time() - t1
+    # cv.SaveImage("hehe_cv.jpg", img)
     cv.ShowImage('Test', img)
     cv.WaitKey(0)

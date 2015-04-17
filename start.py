@@ -4,7 +4,7 @@
 # ---------Edit By KaiHangYang----------
 # -------------2015,04,12---------------
 import os
-import cv
+import cv2
 import sys
 import time
 from Tkinter import *
@@ -16,7 +16,7 @@ import tkFileDialog
 import tkMessageBox
 # 下来是我自己的辅助库
 import fileCheck
-import tool_cv
+import tool_cv2
 
 # 解决Unicode Error
 reload(sys)
@@ -319,11 +319,11 @@ class Application():
         if os.path.exists(self.filename) and fileCheck.isImage(self.filename):
             try:
                 if self.algNum == 0:
-                    im = tool_cv.resize_linear(self.filename, self.wScale, self.hScale)
+                    im = tool_cv2.resize_linear(self.filename, self.wScale, self.hScale)
                 else:
-                    im = tool_cv.resize_cubic(self.filename, self.wScale, self.hScale)
+                    im = tool_cv2.resize_cubic(self.filename, self.wScale, self.hScale)
                 self.consoleNor("过程控制：图片处理完毕，开始保存...")
-                cv.SaveImage(filepath+postfix, im)
+                cv2.imwrite(filepath+postfix, im)
                 self.consoleNor("过程控制：图片保存完毕...")
             except:
                 self.consoleErr("过程控制：图片保存过程出现问题...")

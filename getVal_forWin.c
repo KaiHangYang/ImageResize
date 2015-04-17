@@ -19,7 +19,7 @@ float S(float val) {
 
 //双线性内插值
 int linear(int v1, int v2, int v3, int v4, float p, float q) {
-    int result = v1*(1.0-p)*(1.0-q) + v2*p*(1.0-q) + v3*(1.0-p)*q + v4*p*q;
+    int result = v1*(1.0-p)*(1.0-q) + v2*p*(1-q) + v3*(1-p)*q + v4*p*q;
 
     return result;
 }
