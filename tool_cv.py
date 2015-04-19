@@ -59,7 +59,6 @@ def resize_cubic(path, w, h):
     sum = [0, 0, 0]
 
     Img = cv.CreateImage(size, img.depth, img.nChannels)
-    print W, H
 
     for i in xrange(W):
         for j in xrange(H):
@@ -89,9 +88,6 @@ def resize_cubic(path, w, h):
                 if sum[k] >= 255: sum[k] = 255
 
             Img[j, i] = tuple(sum)
-            if i == 67 and j == 362:
-                print sum, p, q
-
     return Img
 
 if __name__ == '__main__':

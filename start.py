@@ -277,7 +277,6 @@ class Application():
         info = self.console.get("0.0", END).strip()
         info = info.split("\n")
         infoLen = len(info)
-        print self.console.get(str(infoLen)+".0", END)
         self.console.tag_add("warning", str(infoLen)+".0", str(infoLen+1)+".0")
 
     def consoleErr(self, message):
@@ -286,7 +285,6 @@ class Application():
         info = self.console.get("0.0", END).strip()
         info = info.split("\n")
         infoLen = len(info)
-        print self.console.get(str(infoLen)+".0", END)
         self.console.tag_add("error", str(infoLen)+".0", str(infoLen+1)+".0")
 
     def __bind_all(self):
@@ -325,8 +323,8 @@ class Application():
                 self.consoleNor("过程控制：图片处理完毕，开始保存...")
                 cv2.imwrite(filepath+postfix, im)
                 self.consoleNor("过程控制：图片保存完毕...")
-            except:
-                self.consoleErr("过程控制：图片保存过程出现问题...")
+            except e:
+                self.consoleErr("过程控制：图片保存过程出现问题..., 当前环境没配好")
         else:
             self.consoleErr("类型错误：打开的不是图片或者是文件不存在！")
 

@@ -67,7 +67,6 @@ def resize_cubic(path, w, h):
 
     (W, H) = (int(initW*w-w), int(initH*h-h))
     sum = [0, 0, 0]
-    print W, H
     Img = [[]]
     for j in xrange(H):
         for i in xrange(W):
@@ -99,8 +98,7 @@ def resize_cubic(path, w, h):
                 if sum[k] <= 0: sum[k] = 0
 
             Img[j].append(tuple(sum))
-            if i == 67 and j == 362:
-                print sum, p, q
+
         Img.append([])
 
     Img.pop()
