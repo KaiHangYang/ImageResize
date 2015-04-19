@@ -13,8 +13,3 @@
 + 在window下面还蛋疼一些详细请见[window下Python使用C编写扩展库](http://en.wikibooks.org/wiki/Python_Programming/Extending_with_C)但是其中不能编译成**dll**文件要编译成**pyd**才能在Python中识别，并且扩展写的方式也不太一样（就是那个初始化函数的声明不太一样）具体编译方法类似`cl /LD hellomodule.c /Ic:\Python24\include c:\Python24\libs\python24.lib /link/out:hello.pyd`
 + 使用了cv2代替了之前的cv，而且使用numpy中的item来获取像素数据，效率要比cv的效率还要高。
 + 一下是我使用的时候的[心得和坑](https://www.evernote.com/shard/s452/sh/b10ee96f-d914-4f9b-8035-06553922632b/4a430634a67e8f014712d8241a702899)
-
-未完成的事项
----
-+ 还没有做通道检测，不过应该很简单了
-+ 还没有进行window下的打包，没什么难度了
